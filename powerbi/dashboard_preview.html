@@ -116,7 +116,7 @@
   .period-chip b { color: var(--text-primary); font-weight: 700; }
 
   /* ---------- KPI row ---------- */
-  .kpi-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+  .kpi-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
   .kpi {
     background: var(--surface-1); border: 1px solid var(--hairline); border-radius: 18px;
     padding: 16px 17px; box-shadow: var(--shadow-card);
@@ -335,7 +335,7 @@
         <div class="panel-head"><h2>แหล่งข้อมูลและหมายเหตุการคลีน</h2></div>
         <div class="source-note">
           <p><b>การใช้น้ำมันสำเร็จรูป:</b> EPPO dataset_11_15 (ค.ศ., ล้านลิตร, รายเดือนแยกชนิด)</p>
-          <p><b>การส่งออกน้ำมันสำเร็จรูป:</b> DOEB vw_opendata_039 (พ.ศ. แปลงเป็น ค.ศ., พันลิตรแปลงเป็นล้านลิตร, รวมทุกชนิด)</p>
+          <p><b>การส่งออกน้ำมันสำเร็จรูป:</b> DOEB vw_opendata_039 (พ.ศ. แปลงเป็น ค.ศ., พันลิตรแปลงเป็นล้านลิตร, รวมทุกชนิด) แปลงหน่วยถูกต้องตามที่ label ในไฟล์ระบุ แต่ยอดที่ได้ต่ำกว่าที่ควรจะเป็นมาก จึงยังไม่นำมาแสดงเป็นตัวเลขบน dashboard นี้ (รายละเอียดใน README หัวข้อ &quot;Data quality finding&quot;)</p>
           <p>ทำความสะอาดด้วย <code>scripts/clean_fuel_data.py</code> ได้ตารางเดียว <code>fact_fuel_monthly</code> คำนวณ MoM และ YoY ด้วย SQL window function <code>LAG()</code></p>
         </div>
       </div>
@@ -367,7 +367,10 @@
   const fmtPct = (n) => (n > 0 ? "+" : "") + n.toFixed(2) + "%";
 
   const totalLatest = DATA.total_latest;
-  const exportLatest = DATA.export_latest;
+  // DATA.export_latest intentionally unused here: see README "Data quality finding".
+  // The export dataset's unit conversion is correct per its own column label, but the
+  // resulting export-share number is implausibly small and not yet verified, so it is
+  // kept out of the dashboard rather than shown as a trustworthy KPI.
   const yoy = DATA.yoy_latest;
   const sorted = [...yoy].sort((a, b) => a[4] - b[4]);
   const fastestShrink = sorted[0];
@@ -393,7 +396,6 @@
     { label: "การใช้รวมทุกชนิด (เดือนล่าสุด)", value: fmt1(totalLatest[1]) + " ล้านลิตร", delta: totalLatest[3], deltaLabel: "YoY", delta2: totalMomPct, delta2Label: "MoM", sub: "เทียบปีก่อน (YoY) และเดือนก่อน (MoM)", icon: "&#9679;", iconBg: "var(--brand-blue-soft)", iconColor: "var(--brand-blue)" },
     { label: "หดตัวเร็วที่สุด (YoY)", value: fastestShrink[0], delta: fastestShrink[4], deltaLabel: "YoY", sub: fmt1(fastestShrink[2]) + " ล้านลิตร เดือนนี้", icon: "&#9660;", iconBg: "var(--neg-soft)", iconColor: "var(--neg)" },
     { label: "โตเร็วที่สุด (YoY)", value: fastestGrow[0], delta: fastestGrow[4], deltaLabel: "YoY", sub: fmt1(fastestGrow[2]) + " ล้านลิตร เดือนนี้", icon: "&#9650;", iconBg: "var(--brand-blue-soft)", iconColor: "var(--brand-blue)" },
-    { label: "สัดส่วนส่งออก/การใช้ในประเทศ", value: exportLatest[3].toFixed(3) + "%", delta: null, sub: "เดือนที่จับคู่ได้ล่าสุด " + thMonth(exportLatest[0]), icon: "&#9733;", iconBg: "var(--brand-magenta-soft)", iconColor: "var(--brand-magenta)" },
   ];
   kpiRow.innerHTML = kpiDefs.map(k => `
     <div class="kpi">
