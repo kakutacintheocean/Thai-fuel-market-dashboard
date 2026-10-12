@@ -342,13 +342,15 @@
 
     <div class="footer-row">
       <div class="panel">
-        <div class="panel-head"><h2>สรุป YoY รายชนิด (เดือนล่าสุด)</h2></div>
+        <div class="panel-head"><h2>สรุป MoM และ YoY รายชนิด (เดือนล่าสุด)</h2></div>
         <div class="chart-svg-wrap">
           <table style="width:100%; border-collapse:collapse; font-size:12px;" id="yoy-table">
             <thead>
               <tr style="color:var(--text-muted); text-transform:uppercase; font-size:10.5px; letter-spacing:0.03em;">
                 <th style="text-align:left; padding:6px 8px; border-bottom:1px solid var(--hairline);">ชนิดน้ำมัน</th>
                 <th style="text-align:right; padding:6px 8px; border-bottom:1px solid var(--hairline);">เดือนนี้</th>
+                <th style="text-align:right; padding:6px 8px; border-bottom:1px solid var(--hairline);">เดือนก่อน</th>
+                <th style="text-align:right; padding:6px 8px; border-bottom:1px solid var(--hairline);">MoM %</th>
                 <th style="text-align:right; padding:6px 8px; border-bottom:1px solid var(--hairline);">ปีก่อน</th>
                 <th style="text-align:right; padding:6px 8px; border-bottom:1px solid var(--hairline);">YoY %</th>
               </tr>
@@ -399,14 +401,26 @@
   const fastestShrink = sorted[0];
   const fastestGrow = sorted[sorted.length - 1];
 
+  // ---------- MoM (month-over-month: latest month vs. the one right before it) ----------
+  const lastIdx = DATA.dates.length - 1;
+  const momByProduct = {};
+  order.forEach(p => {
+    const vals = DATA.series[p];
+    const cur = vals[lastIdx];
+    const prevM = vals[lastIdx - 1];
+    momByProduct[p] = { qtyPrevMonth: prevM, momPct: ((cur - prevM) / prevM) * 100 };
+  });
+  const totalPrevMonth = order.reduce((s, p) => s + DATA.series[p][lastIdx - 1], 0);
+  const totalMomPct = ((totalLatest[1] - totalPrevMonth) / totalPrevMonth) * 100;
+
   document.getElementById("chip-date").textContent = thMonth(totalLatest[0]);
 
   // ---------- KPI row ----------
   const kpiRow = document.getElementById("kpi-row");
   const kpiDefs = [
-    { label: "การใช้รวมทุกชนิด (เดือนล่าสุด)", value: fmt1(totalLatest[1]) + " ล้านลิตร", delta: totalLatest[3], sub: "เทียบเดือนเดียวกันปีก่อน (YoY)", icon: "&#9679;", iconBg: "var(--brand-blue-soft)", iconColor: "var(--brand-blue)" },
-    { label: "หดตัวเร็วที่สุด (YoY)", value: fastestShrink[0], delta: fastestShrink[4], sub: fmt1(fastestShrink[2]) + " ล้านลิตร เดือนนี้", icon: "&#9660;", iconBg: "var(--neg-soft)", iconColor: "var(--neg)" },
-    { label: "โตเร็วที่สุด (YoY)", value: fastestGrow[0], delta: fastestGrow[4], sub: fmt1(fastestGrow[2]) + " ล้านลิตร เดือนนี้", icon: "&#9650;", iconBg: "var(--brand-blue-soft)", iconColor: "var(--brand-blue)" },
+    { label: "การใช้รวมทุกชนิด (เดือนล่าสุด)", value: fmt1(totalLatest[1]) + " ล้านลิตร", delta: totalLatest[3], deltaLabel: "YoY", delta2: totalMomPct, delta2Label: "MoM", sub: "เทียบปีก่อน (YoY) และเดือนก่อน (MoM)", icon: "&#9679;", iconBg: "var(--brand-blue-soft)", iconColor: "var(--brand-blue)" },
+    { label: "หดตัวเร็วที่สุด (YoY)", value: fastestShrink[0], delta: fastestShrink[4], deltaLabel: "YoY", sub: fmt1(fastestShrink[2]) + " ล้านลิตร เดือนนี้", icon: "&#9660;", iconBg: "var(--neg-soft)", iconColor: "var(--neg)" },
+    { label: "โตเร็วที่สุด (YoY)", value: fastestGrow[0], delta: fastestGrow[4], deltaLabel: "YoY", sub: fmt1(fastestGrow[2]) + " ล้านลิตร เดือนนี้", icon: "&#9650;", iconBg: "var(--brand-blue-soft)", iconColor: "var(--brand-blue)" },
     { label: "สัดส่วนส่งออก/การใช้ในประเทศ", value: exportLatest[3].toFixed(3) + "%", delta: null, sub: "เดือนที่จับคู่ได้ล่าสุด " + thMonth(exportLatest[0]), icon: "&#9733;", iconBg: "var(--brand-magenta-soft)", iconColor: "var(--brand-magenta)" },
   ];
   kpiRow.innerHTML = kpiDefs.map(k => `
@@ -416,7 +430,10 @@
         <div class="icon" style="background:${k.iconBg}; color:${k.iconColor};">${k.icon}</div>
       </div>
       <div class="value">${k.value}</div>
-      ${k.delta !== null ? `<span class="delta-pill ${k.delta < 0 ? "neg" : "pos"}">${k.delta < 0 ? "&#9660;" : "&#9650;"} ${fmtPct(k.delta)} YoY</span>` : ""}
+      <div style="display:flex; gap:6px; flex-wrap:wrap;">
+        ${k.delta !== null ? `<span class="delta-pill ${k.delta < 0 ? "neg" : "pos"}">${k.delta < 0 ? "&#9660;" : "&#9650;"} ${fmtPct(k.delta)} ${k.deltaLabel}</span>` : ""}
+        ${k.delta2 !== undefined ? `<span class="delta-pill ${k.delta2 < 0 ? "neg" : "pos"}">${k.delta2 < 0 ? "&#9660;" : "&#9650;"} ${fmtPct(k.delta2)} ${k.delta2Label}</span>` : ""}
+      </div>
       <div class="sub">${k.sub}</div>
     </div>
   `).join("");
@@ -629,9 +646,12 @@
   const tbody = document.querySelector("#yoy-table tbody");
   tbody.innerHTML = sorted.map(r => {
     const [product, , qty, qtyLy, g] = r;
+    const mom = momByProduct[product];
     return `<tr>
       <td style="padding:7px 8px; border-bottom:1px solid var(--hairline);"><span style="width:8px;height:8px;border-radius:2px;display:inline-block;margin-right:6px;background:${palette[product]}"></span>${product}</td>
       <td style="padding:7px 8px; border-bottom:1px solid var(--hairline); text-align:right;">${fmt1(qty)}</td>
+      <td style="padding:7px 8px; border-bottom:1px solid var(--hairline); text-align:right;">${fmt1(mom.qtyPrevMonth)}</td>
+      <td style="padding:7px 8px; border-bottom:1px solid var(--hairline); text-align:right; font-weight:800; color:${mom.momPct < 0 ? "var(--neg)" : "var(--brand-blue)"};">${fmtPct(mom.momPct)}</td>
       <td style="padding:7px 8px; border-bottom:1px solid var(--hairline); text-align:right;">${fmt1(qtyLy)}</td>
       <td style="padding:7px 8px; border-bottom:1px solid var(--hairline); text-align:right; font-weight:800; color:${g < 0 ? "var(--neg)" : "var(--brand-blue)"};">${fmtPct(g)}</td>
     </tr>`;
