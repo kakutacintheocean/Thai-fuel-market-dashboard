@@ -82,11 +82,7 @@ python scripts/clean_fuel_data.py
 3. เดือนเป็นชื่อ ("January") ในไฟล์หนึ่ง เป็นเลข (1 ถึง 12) ในอีกไฟล์ ต้อง map เองถ้าทำมือ
 4. ชนิดน้ำมันเขียน ALL CAPS ต้องมา normalize ก่อน join/group ไม่งั้น pivot จะแยกเป็นหมวดซ้ำ
 
-## เปิด dashboard ให้คนอื่นดูผ่าน GitHub Pages
 
-เปิดใช้งานแล้วที่ Settings > Pages (branch `main`, folder `/ (root)`) เข้าดูได้ที่
-https://kakutacintheocean.github.io/Thai-fuel-market-dashboard/ (ไฟล์ `index.html`
-ที่ root จะ redirect ไปหน้า dashboard ที่ `powerbi/dashboard_preview.html` ให้อัตโนมัติ)
 
 ถ้า fork ไปทำโปรเจคของตัวเอง ทำตามนี้ซ้ำ:
 1. Push repo ขึ้น GitHub (branch `main`)
