@@ -1,0 +1,117 @@
+// ============================================================================
+// Thai Fuel Market: DAX measures for the Power BI dashboard
+// Data source: data/processed/fact_fuel_monthly.csv (or fuel_market.db)
+// Model: fact_fuel_monthly  +  a Calendar date table (see POWERBI_GUIDE.md step 2)
+//        relationship: Calendar[Date] (1) -> fact_fuel_monthly[record_date] (*)
+//
+// Glossary: MoM (Month-over-Month) compares this month to the previous month;
+// YoY (Year-over-Year) compares this month to the same month last year.
+// ============================================================================
+
+// ---- Base measures ---------------------------------------------------------
+
+Total Consumption (M Litres) =
+CALCULATE(
+    SUM(fact_fuel_monthly[quantity_million_litres]),
+    fact_fuel_monthly[metric_type] = "Consumption"
+)
+
+Total Export (M Litres) =
+CALCULATE(
+    SUM(fact_fuel_monthly[quantity_million_litres]),
+    fact_fuel_monthly[metric_type] = "Export"
+)
+
+// ---- Time intelligence (needs the Calendar date table marked as Date Table) ---
+
+Consumption LY =
+CALCULATE(
+    [Total Consumption (M Litres)],
+    SAMEPERIODLASTYEAR('Calendar'[Date])
+)
+
+Consumption YoY % =
+DIVIDE(
+    [Total Consumption (M Litres)] - [Consumption LY],
+    [Consumption LY]
+)
+
+Consumption PM =
+CALCULATE(
+    [Total Consumption (M Litres)],
+    DATEADD('Calendar'[Date], -1, MONTH)
+)
+
+Consumption MoM % =
+DIVIDE(
+    [Total Consumption (M Litres)] - [Consumption PM],
+    [Consumption PM]
+)
+
+Export LY =
+CALCULATE(
+    [Total Export (M Litres)],
+    SAMEPERIODLASTYEAR('Calendar'[Date])
+)
+
+Export YoY % =
+DIVIDE([Total Export (M Litres)] - [Export LY], [Export LY])
+
+Export Share of Consumption % =
+DIVIDE([Total Export (M Litres)], [Total Consumption (M Litres)])
+
+// ---- KPI-card helpers (latest month in the current filter context) --------
+
+Latest Date =
+CALCULATE(
+    MAX(fact_fuel_monthly[record_date]),
+    ALLSELECTED(fact_fuel_monthly)
+)
+
+Is Latest Month =
+IF(
+    SELECTEDVALUE('Calendar'[Date]) = [Latest Date]
+        || MAX('Calendar'[Date]) = [Latest Date],
+    1, 0
+)
+
+// Growth-bar chart measure: YoY % for whichever product is on the axis,
+// evaluated at the latest available month regardless of any date-slicer state.
+Latest Month YoY % (by Product) =
+CALCULATE(
+    [Consumption YoY %],
+    'Calendar'[Date] = [Latest Date]
+)
+
+// Shrinking-product flag used to color the diverging bar chart
+// (bind this to a conditional-formatting rule, not a calculated column).
+Is Shrinking =
+IF([Latest Month YoY % (by Product)] < 0, "Shrinking", "Growing")
+
+// ---- KPI card text measures (ready-to-drop "Card" visuals) ----------------
+
+KPI Total Consumption Label =
+FORMAT([Total Consumption (M Litres)], "#,##0.0") & " ล้านลิตร"
+
+KPI Total Consumption YoY Label =
+VAR pct = [Consumption YoY %]
+RETURN
+IF(
+    pct < 0,
+    "▼ " & FORMAT(pct, "0.00%") & " YoY",
+    "▲ " & FORMAT(pct, "0.00%") & " YoY"
+)
+
+KPI Most Shrinking Product =
+VAR t =
+    TOPN(
+        1,
+        SUMMARIZE(
+            FILTER(fact_fuel_monthly, fact_fuel_monthly[metric_type] = "Consumption"),
+            fact_fuel_monthly[product]
+        ),
+        CALCULATE([Latest Month YoY % (by Product)]),
+        ASC
+    )
+RETURN
+    CONCATENATEX(t, fact_fuel_monthly[product])

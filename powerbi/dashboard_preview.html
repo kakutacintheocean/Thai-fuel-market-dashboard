@@ -1,0 +1,640 @@
+<meta charset="utf-8">
+<title>Thai Fuel Market Dashboard</title>
+<style>
+  .viz-root {
+    color-scheme: light;
+    --page-grad-a: #eaf2fb;
+    --page-grad-b: #fdedf5;
+    --surface-1: #ffffff;
+    --surface-1-glass: rgba(255,255,255,0.82);
+    --surface-2: #f1f5fa;
+    --text-primary: #101828;
+    --text-secondary: #5c6b7a;
+    --text-muted: #94a1ae;
+    --hairline: rgba(16,24,40,0.08);
+
+    --brand-blue: #00518a;
+    --brand-blue-ink: #003a63;
+    --brand-blue-soft: #e4edf6;
+    --brand-magenta: #e01383;
+    --brand-magenta-ink: #a40e61;
+    --brand-magenta-soft: #fce6f1;
+    --neg: #e34948;
+    --neg-soft: #fbe9e8;
+
+    --series-1: #2a78d6;
+    --series-2: #eb6834;
+    --series-3: #1baf7a;
+    --series-4: #eda100;
+    --series-5: #e87ba4;
+    --series-6: #008300;
+
+    --shadow-card: 0 1px 2px rgba(16,24,40,0.04), 0 12px 28px -12px rgba(16,24,40,0.12);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:where(:not([data-theme="light"])) .viz-root {
+      color-scheme: dark;
+      --page-grad-a: #0a1118;
+      --page-grad-b: #170c13;
+      --surface-1: #161c26;
+      --surface-1-glass: rgba(22,28,38,0.86);
+      --surface-2: #1f2733;
+      --text-primary: #f3f6fa;
+      --text-secondary: #a9b5c3;
+      --text-muted: #76838f;
+      --hairline: rgba(255,255,255,0.08);
+
+      --brand-blue: #4596db;
+      --brand-blue-ink: #bcdcf7;
+      --brand-blue-soft: #15283a;
+      --brand-magenta: #ef62ab;
+      --brand-magenta-ink: #fad0e6;
+      --brand-magenta-soft: #35182a;
+      --neg: #e66767;
+      --neg-soft: #2a1716;
+
+      --series-1: #3987e5;
+      --series-2: #d95926;
+      --series-3: #199e70;
+      --series-4: #c98500;
+      --series-5: #d55181;
+      --series-6: #2fae2f;
+
+      --shadow-card: 0 1px 2px rgba(0,0,0,0.3), 0 16px 32px -14px rgba(0,0,0,0.5);
+    }
+  }
+  :root[data-theme="dark"] .viz-root {
+    color-scheme: dark;
+    --page-grad-a: #0a1118; --page-grad-b: #170c13;
+    --surface-1: #161c26; --surface-1-glass: rgba(22,28,38,0.86); --surface-2: #1f2733;
+    --text-primary: #f3f6fa; --text-secondary: #a9b5c3; --text-muted: #76838f;
+    --hairline: rgba(255,255,255,0.08);
+    --brand-blue: #4596db; --brand-blue-ink: #bcdcf7; --brand-blue-soft: #15283a;
+    --brand-magenta: #ef62ab; --brand-magenta-ink: #fad0e6; --brand-magenta-soft: #35182a;
+    --neg: #e66767; --neg-soft: #2a1716;
+    --series-1: #3987e5; --series-2: #d95926; --series-3: #199e70;
+    --series-4: #c98500; --series-5: #d55181; --series-6: #2fae2f;
+    --shadow-card: 0 1px 2px rgba(0,0,0,0.3), 0 16px 32px -14px rgba(0,0,0,0.5);
+  }
+  :root[data-theme="light"] .viz-root {
+    color-scheme: light;
+    --page-grad-a: #eaf2fb; --page-grad-b: #fdedf5;
+    --surface-1: #ffffff; --surface-1-glass: rgba(255,255,255,0.82); --surface-2: #f1f5fa;
+    --text-primary: #101828; --text-secondary: #5c6b7a; --text-muted: #94a1ae;
+    --hairline: rgba(16,24,40,0.08);
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  .viz-root {
+    background: linear-gradient(135deg, var(--page-grad-a) 0%, var(--page-grad-b) 100%);
+    color: var(--text-primary);
+    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+    font-variant-numeric: tabular-nums;
+    padding: 20px clamp(14px, 3.5vw, 36px) 40px;
+    min-height: 100vh;
+  }
+  .shell { max-width: 1320px; margin: 0 auto; display: flex; flex-direction: column; gap: 16px; }
+
+  /* ---------- Top pill nav ---------- */
+  .topnav {
+    display: flex; align-items: center; gap: 10px;
+    background: var(--surface-1-glass);
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--hairline);
+    border-radius: 999px;
+    padding: 8px 10px 8px 14px;
+    box-shadow: var(--shadow-card);
+  }
+  .brand-mark {
+    width: 32px; height: 32px; border-radius: 10px; flex: none;
+    background: linear-gradient(135deg, var(--brand-blue), var(--brand-magenta));
+    display: flex; align-items: center; justify-content: center;
+    color: #fff; font-weight: 800; font-size: 13px; letter-spacing: -0.02em;
+  }
+  .brand-word { font-weight: 700; font-size: 13.5px; margin-right: 10px; white-space: nowrap; }
+  .nav-pills { display: flex; gap: 4px; flex: 1; justify-content: flex-end; }
+  .nav-pill {
+    font-size: 12.5px; font-weight: 600; color: var(--text-secondary);
+    padding: 7px 14px; border-radius: 999px; white-space: nowrap;
+    text-decoration: none; cursor: pointer;
+  }
+  .nav-pill.active { background: var(--brand-blue); color: #fff; }
+  @media (prefers-reduced-motion: no-preference) {
+    html { scroll-behavior: smooth; }
+  }
+  [id^="section-"] { scroll-margin-top: 14px; }
+
+  /* ---------- Hero ---------- */
+  .hero { display: flex; justify-content: space-between; align-items: flex-end; gap: 16px; flex-wrap: wrap; padding: 6px 4px 0; }
+  .hero h1 { margin: 0 0 6px; font-size: 24px; font-weight: 800; letter-spacing: -0.01em; text-wrap: balance; }
+  .hero .lede { margin: 0; font-size: 13px; color: var(--text-secondary); max-width: 60ch; line-height: 1.55; }
+  .glossary-strip {
+    display: inline-flex; gap: 14px; margin-top: 8px; font-size: 11.5px; color: var(--text-muted);
+    background: var(--surface-1); border: 1px solid var(--hairline); border-radius: 10px;
+    padding: 7px 12px; flex-wrap: wrap;
+  }
+  .glossary-strip b { color: var(--text-secondary); font-weight: 700; }
+  .period-chip {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: var(--surface-1); border: 1px solid var(--hairline);
+    border-radius: 999px; padding: 8px 14px; font-size: 12.5px; color: var(--text-secondary);
+    white-space: nowrap; box-shadow: var(--shadow-card);
+  }
+  .period-chip b { color: var(--text-primary); font-weight: 700; }
+
+  /* ---------- KPI row ---------- */
+  .kpi-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+  .kpi {
+    background: var(--surface-1); border: 1px solid var(--hairline); border-radius: 18px;
+    padding: 16px 17px; box-shadow: var(--shadow-card);
+    display: flex; flex-direction: column; gap: 7px; min-width: 0;
+  }
+  .kpi .top-row { display: flex; align-items: center; justify-content: space-between; }
+  .kpi .label { font-size: 11px; font-weight: 700; letter-spacing: 0.03em; color: var(--text-muted); }
+  .kpi .icon {
+    width: 26px; height: 26px; border-radius: 8px; flex: none;
+    display: flex; align-items: center; justify-content: center; font-size: 12px;
+  }
+  .kpi .value { font-size: 24px; font-weight: 800; letter-spacing: -0.01em; line-height: 1.1; }
+  .kpi .sub { font-size: 12px; color: var(--text-secondary); }
+  .delta-pill {
+    display: inline-flex; align-items: center; gap: 4px; font-size: 11.5px; font-weight: 700;
+    padding: 3px 9px; border-radius: 999px; width: fit-content;
+  }
+  .delta-pill.neg { color: var(--neg); background: var(--neg-soft); }
+  .delta-pill.pos { color: var(--brand-blue); background: var(--brand-blue-soft); }
+
+  /* ---------- Bento ---------- */
+  .bento { display: grid; grid-template-columns: 1.62fr 1fr; gap: 12px; align-items: stretch; }
+  .bento-side { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+  .panel {
+    background: var(--surface-1); border: 1px solid var(--hairline); border-radius: 18px;
+    padding: 18px 18px 14px; box-shadow: var(--shadow-card);
+    display: flex; flex-direction: column; min-width: 0;
+  }
+  .panel-head { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; margin-bottom: 2px; flex-wrap: wrap; }
+  .panel-head h2 { margin: 0; font-size: 14px; font-weight: 800; }
+  .panel-head .hint { font-size: 11px; color: var(--text-muted); }
+
+  .legend { display: flex; flex-wrap: wrap; gap: 9px 13px; margin: 10px 0 2px; }
+  .legend-item { display: flex; align-items: center; gap: 6px; font-size: 11.5px; color: var(--text-secondary); cursor: pointer; user-select: none; }
+  .legend-item .sw { width: 8px; height: 8px; border-radius: 2px; flex: none; }
+  .legend-item.dim { opacity: 0.35; }
+
+  .chart-svg-wrap { position: relative; overflow-x: auto; }
+  svg text { font-family: system-ui, -apple-system, "Segoe UI", sans-serif; }
+  .axis-label { fill: var(--text-muted); font-size: 10px; }
+  .gridline { stroke: var(--hairline); stroke-width: 1; }
+  .baseline { stroke: var(--hairline); stroke-width: 1; }
+
+  .tooltip {
+    position: absolute; pointer-events: none;
+    background: var(--surface-2); border: 1px solid var(--hairline); border-radius: 10px;
+    padding: 8px 10px; font-size: 11px; line-height: 1.5;
+    box-shadow: var(--shadow-card); opacity: 0; transition: opacity 0.08s; z-index: 5; min-width: 148px;
+  }
+  .tooltip .t-date { font-weight: 800; margin-bottom: 4px; display: block; }
+  .tooltip .t-row { display: flex; justify-content: space-between; gap: 10px; }
+  .tooltip .t-row .k { display: flex; align-items: center; gap: 5px; color: var(--text-secondary); }
+  .tooltip .t-row .dot { width: 7px; height: 7px; border-radius: 50%; flex: none; }
+  .tooltip .t-row .v { font-weight: 700; }
+
+  /* ---------- Donut card ---------- */
+  .donut-wrap { display: flex; align-items: center; justify-content: center; position: relative; margin: 6px 0 4px; }
+  .donut-center { position: absolute; text-align: center; }
+  .donut-center .pct { font-size: 26px; font-weight: 800; }
+  .donut-center .cap { font-size: 10px; color: var(--text-muted); font-weight: 700; letter-spacing: 0.03em; }
+  .donut-legend { display: flex; justify-content: center; gap: 16px; font-size: 11.5px; color: var(--text-secondary); margin-top: 2px; }
+  .donut-legend .sw { width: 8px; height: 8px; border-radius: 2px; display: inline-block; margin-right: 5px; }
+
+  /* ---------- Ranked list ---------- */
+  .rank-row { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--hairline); }
+  .rank-row:last-child { border-bottom: none; }
+  .rank-dot { width: 8px; height: 8px; border-radius: 50%; flex: none; }
+  .rank-name { flex: 1; font-size: 12.5px; font-weight: 700; min-width: 0; }
+  .rank-sub { font-size: 10.5px; color: var(--text-muted); }
+  .tag {
+    font-size: 11px; font-weight: 700; padding: 3px 9px; border-radius: 999px; flex: none;
+  }
+  .tag.neg { color: var(--neg); background: var(--neg-soft); }
+  .tag.pos { color: var(--brand-blue); background: var(--brand-blue-soft); }
+
+  /* ---------- Growth bars ---------- */
+  .bar-row { display: flex; align-items: center; gap: 10px; padding: 7px 0; border-bottom: 1px solid var(--hairline); }
+  .bar-row:last-child { border-bottom: none; }
+  .bar-label { width: 76px; flex: none; font-size: 12px; font-weight: 700; }
+  .bar-track { position: relative; flex: 1; height: 20px; background: var(--surface-2); border-radius: 5px; overflow: hidden; }
+  .bar-mid { position: absolute; left: 50%; top: 0; bottom: 0; width: 1px; background: var(--hairline); }
+  .bar-fill { position: absolute; top: 2px; bottom: 2px; border-radius: 4px; min-width: 3px; }
+  .bar-val { width: 58px; flex: none; text-align: right; font-size: 12px; font-weight: 800; }
+
+  /* ---------- Insight banner ---------- */
+  .banner {
+    border-radius: 18px; padding: 18px 22px; color: #fff;
+    background: linear-gradient(135deg, var(--brand-blue) 0%, var(--brand-magenta) 100%);
+    display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap;
+    box-shadow: var(--shadow-card);
+  }
+  .banner .btxt { max-width: 62ch; }
+  .banner .btag { font-size: 10.5px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; opacity: 0.85; margin-bottom: 4px; }
+  .banner .bmain { font-size: 14.5px; font-weight: 700; line-height: 1.5; }
+  .banner .bmain b { font-weight: 800; }
+  .banner-pill {
+    flex: none; background: rgba(255,255,255,0.18); border: 1px solid rgba(255,255,255,0.3);
+    padding: 9px 16px; border-radius: 999px; font-size: 12px; font-weight: 700; white-space: nowrap;
+  }
+
+  /* ---------- Footer ---------- */
+  .footer-row { display: grid; grid-template-columns: 1.62fr 1fr; gap: 12px; }
+  .source-note { font-size: 11px; color: var(--text-muted); line-height: 1.7; }
+  .source-note b { color: var(--text-secondary); }
+  .source-note code { background: var(--surface-2); padding: 1px 5px; border-radius: 4px; font-size: 10.5px; }
+
+  @media (max-width: 980px) {
+    .kpi-row { grid-template-columns: repeat(2, 1fr); }
+    .bento, .footer-row { grid-template-columns: 1fr; }
+    .nav-pills { display: none; }
+  }
+</style>
+
+<div class="viz-root">
+  <div class="shell">
+
+    <div class="topnav">
+      <div class="brand-mark">TO</div>
+      <div class="brand-word">Thaioil Market Monitor</div>
+      <nav class="nav-pills" id="nav-pills">
+        <a class="nav-pill active" href="#section-overview" data-target="section-overview">ภาพรวม</a>
+        <a class="nav-pill" href="#section-trend" data-target="section-trend">เทรนด์</a>
+        <a class="nav-pill" href="#section-growth" data-target="section-growth">Growth</a>
+      </nav>
+    </div>
+
+    <div class="hero" id="section-overview">
+      <div>
+        <h1>ความต้องการน้ำมันสำเร็จรูปไทยกำลังเปลี่ยนไปทางไหน</h1>
+        <p class="lede">เทรนด์การใช้น้ำมันสำเร็จรูปแยกตามชนิด เทียบ YoY และ MoM เพื่อดูว่าชนิดไหนกำลังหดตัวจนกระทบ product mix ของโรงกลั่น ข้อมูลจาก สนพ. (EPPO) และกรมธุรกิจพลังงาน (DOEB)</p>
+        <div class="glossary-strip">
+          <span><b>YoY (Year over Year):</b> เทียบเดือนเดียวกันของปีก่อน ใช้ตัดผลฤดูกาลออก</span>
+          <span><b>MoM (Month over Month):</b> เทียบเดือนก่อนหน้าทันที ใช้ดูความผันผวนระยะสั้น</span>
+        </div>
+      </div>
+      <div class="period-chip">ข้อมูลล่าสุด <b id="chip-date">-</b> &middot; ย้อนหลัง <b>36 เดือน</b></div>
+    </div>
+
+    <div class="kpi-row" id="kpi-row"></div>
+
+    <div class="bento" id="section-trend">
+      <div class="panel">
+        <div class="panel-head">
+          <h2>การใช้น้ำมันสำเร็จรูปรายเดือน แยกตามชนิด</h2>
+          <span class="hint">ล้านลิตรต่อเดือน &middot; ชี้ที่กราฟเพื่อดูค่ารายเดือน</span>
+        </div>
+        <div class="legend" id="legend"></div>
+        <div class="chart-svg-wrap" id="line-chart-wrap">
+          <svg id="line-chart" viewBox="0 0 860 320" preserveAspectRatio="xMidYMid meet"></svg>
+          <div class="tooltip" id="line-tooltip"></div>
+        </div>
+      </div>
+
+      <div class="bento-side">
+        <div class="panel">
+          <div class="panel-head">
+            <h2>สัดส่วนชนิดที่หดตัว YoY</h2>
+            <span class="hint">เดือนล่าสุด</span>
+          </div>
+          <div class="donut-wrap">
+            <svg id="donut-chart" viewBox="0 0 180 180" width="160" height="160"></svg>
+            <div class="donut-center" id="donut-center"></div>
+          </div>
+          <div class="donut-legend">
+            <span><span class="sw" style="background:var(--neg)"></span>หดตัว</span>
+            <span><span class="sw" style="background:var(--brand-blue)"></span>โต</span>
+          </div>
+        </div>
+
+        <div class="panel" style="flex:1;">
+          <div class="panel-head">
+            <h2>อันดับ YoY รายชนิด</h2>
+            <span class="hint">เรียงหดตัวสุดก่อน</span>
+          </div>
+          <div id="rank-list" style="margin-top:4px;"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel" id="section-growth">
+      <div class="panel-head">
+        <h2>Growth YoY ล่าสุดต่อชนิด</h2>
+        <span class="hint">เปอร์เซ็นต์เทียบเดือนเดียวกันปีก่อน</span>
+      </div>
+      <div id="growth-bars" style="margin-top:6px;"></div>
+    </div>
+
+    <div class="banner">
+      <div class="btxt">
+        <div class="btag">Insight เดือนนี้</div>
+        <div class="bmain" id="banner-text"></div>
+      </div>
+      <div class="banner-pill">ดูรายละเอียดใน sql/analysis_queries.sql</div>
+    </div>
+
+    <div class="footer-row">
+      <div class="panel">
+        <div class="panel-head"><h2>สรุป YoY รายชนิด (เดือนล่าสุด)</h2></div>
+        <div class="chart-svg-wrap">
+          <table style="width:100%; border-collapse:collapse; font-size:12px;" id="yoy-table">
+            <thead>
+              <tr style="color:var(--text-muted); text-transform:uppercase; font-size:10.5px; letter-spacing:0.03em;">
+                <th style="text-align:left; padding:6px 8px; border-bottom:1px solid var(--hairline);">ชนิดน้ำมัน</th>
+                <th style="text-align:right; padding:6px 8px; border-bottom:1px solid var(--hairline);">เดือนนี้</th>
+                <th style="text-align:right; padding:6px 8px; border-bottom:1px solid var(--hairline);">ปีก่อน</th>
+                <th style="text-align:right; padding:6px 8px; border-bottom:1px solid var(--hairline);">YoY %</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="panel-head"><h2>แหล่งข้อมูลและหมายเหตุการคลีน</h2></div>
+        <div class="source-note">
+          <p><b>การใช้น้ำมันสำเร็จรูป:</b> EPPO dataset_11_15 (ค.ศ., ล้านลิตร, รายเดือนแยกชนิด)</p>
+          <p><b>การส่งออกน้ำมันสำเร็จรูป:</b> DOEB vw_opendata_039 (พ.ศ. แปลงเป็น ค.ศ., พันลิตรแปลงเป็นล้านลิตร, รวมทุกชนิด)</p>
+          <p>ทำความสะอาดด้วย <code>scripts/clean_fuel_data.py</code> ได้ตารางเดียว <code>fact_fuel_monthly</code> คำนวณ MoM และ YoY ด้วย SQL window function <code>LAG()</code></p>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+(function () {
+  const DATA = {"dates": ["2023-08-01", "2023-09-01", "2023-10-01", "2023-11-01", "2023-12-01", "2024-01-01", "2024-02-01", "2024-03-01", "2024-04-01", "2024-05-01", "2024-06-01", "2024-07-01", "2024-08-01", "2024-09-01", "2024-10-01", "2024-11-01", "2024-12-01", "2025-01-01", "2025-02-01", "2025-03-01", "2025-04-01", "2025-05-01", "2025-06-01", "2025-07-01", "2025-08-01", "2025-09-01", "2025-10-01", "2025-11-01", "2025-12-01", "2026-01-01", "2026-02-01", "2026-03-01", "2026-04-01", "2026-05-01", "2026-06-01", "2026-07-01"], "series": {"Diesel": [1954.0, 1871.3, 1971.1, 2139.2, 2163.9, 2152.1, 2061.1, 2261.5, 2126.8, 2184.6, 1996.3, 2067.5, 2058.5, 1885.4, 2037.0, 2162.8, 2179.3, 2171.1, 2013.7, 2167.3, 2138.7, 2148.8, 2003.0, 1947.1, 1963.0, 1800.3, 1943.0, 2005.5, 2158.9, 2148.0, 1975.5, 2550.7, 1744.8, 2006.7, 1915.8, 1957.3], "Fuel Oil": [146.9, 140.4, 136.1, 139.1, 159.9, 163.2, 160.9, 156.7, 129.3, 143.9, 133.6, 136.9, 156.9, 163.3, 186.3, 165.2, 156.1, 169.2, 159.2, 151.8, 150.9, 169.2, 157.1, 155.2, 155.9, 157.6, 168.0, 176.3, 196.9, 198.5, 164.8, 183.9, 145.2, 163.0, 158.2, 157.4], "Gasoline": [960.0, 903.2, 913.5, 952.1, 1014.3, 989.9, 914.1, 951.0, 953.4, 941.8, 953.9, 949.3, 990.1, 910.5, 967.1, 956.1, 1006.1, 957.1, 884.6, 968.6, 969.5, 979.5, 953.7, 1004.2, 972.0, 941.3, 972.2, 938.0, 1035.4, 1002.1, 927.3, 1058.7, 877.0, 947.9, 965.1, 1021.8], "Jet Fuel": [395.8, 380.6, 400.6, 442.3, 497.2, 512.3, 504.9, 526.7, 477.2, 457.1, 424.8, 472.9, 481.0, 444.2, 492.4, 547.2, 599.1, 620.4, 552.3, 583.8, 530.2, 477.3, 446.2, 479.2, 497.7, 459.3, 520.3, 565.1, 634.2, 645.3, 594.2, 591.9, 515.5, 465.3, 431.7, 479.0], "Kerosene": [0.5, 0.4, 0.3, 0.2, 0.3, 0.3, 0.3, 0.4, 0.3, 0.4, 0.3, 0.5, 0.4, 0.3, 0.3, 0.4, 0.3, 0.5, 0.2, 0.2, 0.3, 0.2, 0.2, 0.2, 0.5, 0.3, 0.4, 0.4, 0.2, 0.2, 0.3, 0.6, 0.3, 0.4, 0.3, 0.2], "LPG": [1080.6, 1005.2, 934.8, 925.3, 917.5, 943.3, 939.3, 1057.6, 1099.2, 1130.0, 1125.4, 1195.5, 1133.6, 1025.4, 999.3, 929.9, 971.6, 971.9, 923.4, 994.2, 1050.2, 1045.4, 1072.7, 1095.0, 1004.6, 959.6, 1097.6, 1030.1, 1050.6, 1018.8, 953.8, 1029.9, 990.1, 1027.0, 982.8, 952.4]}, "products": ["Diesel", "Fuel Oil", "Gasoline", "Jet Fuel", "Kerosene", "LPG"], "yoy_latest": [["Kerosene", "2026-07-01", 0.169, 0.236, -28.39], ["LPG", "2026-07-01", 952.364815, 1095.006, -13.03], ["Jet Fuel", "2026-07-01", 479.002, 479.201, -0.04], ["Diesel", "2026-07-01", 1957.316, 1947.126, 0.52], ["Fuel Oil", "2026-07-01", 157.374, 155.161, 1.43], ["Gasoline", "2026-07-01", 1021.777, 1004.174, 1.75]], "total_latest": ["2026-07-01", 4568.002815, 4680.904, -2.41], "export_latest": ["2025-05-01", 4820.416, 0.528929, 0.011]};
+
+  const palette = {
+    "Diesel": "var(--series-1)", "Gasoline": "var(--series-2)", "Jet Fuel": "var(--series-3)",
+    "LPG": "var(--series-4)", "Fuel Oil": "var(--series-5)", "Kerosene": "var(--series-6)",
+  };
+  const order = ["Diesel", "Gasoline", "Jet Fuel", "LPG", "Fuel Oil", "Kerosene"];
+  const directLabel = new Set(["Diesel", "Gasoline"]);
+
+  const root = document.querySelector(".viz-root");
+  const cssVar = (name) => getComputedStyle(root).getPropertyValue(name).trim();
+
+  const thMonth = (iso) => {
+    const d = new Date(iso + "T00:00:00");
+    const months = ["ม.ค.","ก.พ.","มี.ค.","เม.ย.","พ.ค.","มิ.ย.","ก.ค.","ส.ค.","ก.ย.","ต.ค.","พ.ย.","ธ.ค."];
+    return months[d.getMonth()] + " " + d.getFullYear();
+  };
+  const fmt1 = (n) => n.toLocaleString("en-US", { maximumFractionDigits: 1, minimumFractionDigits: 1 });
+  const fmtPct = (n) => (n > 0 ? "+" : "") + n.toFixed(2) + "%";
+
+  const totalLatest = DATA.total_latest;
+  const exportLatest = DATA.export_latest;
+  const yoy = DATA.yoy_latest;
+  const sorted = [...yoy].sort((a, b) => a[4] - b[4]);
+  const fastestShrink = sorted[0];
+  const fastestGrow = sorted[sorted.length - 1];
+
+  document.getElementById("chip-date").textContent = thMonth(totalLatest[0]);
+
+  // ---------- KPI row ----------
+  const kpiRow = document.getElementById("kpi-row");
+  const kpiDefs = [
+    { label: "การใช้รวมทุกชนิด (เดือนล่าสุด)", value: fmt1(totalLatest[1]) + " ล้านลิตร", delta: totalLatest[3], sub: "เทียบเดือนเดียวกันปีก่อน (YoY)", icon: "&#9679;", iconBg: "var(--brand-blue-soft)", iconColor: "var(--brand-blue)" },
+    { label: "หดตัวเร็วที่สุด (YoY)", value: fastestShrink[0], delta: fastestShrink[4], sub: fmt1(fastestShrink[2]) + " ล้านลิตร เดือนนี้", icon: "&#9660;", iconBg: "var(--neg-soft)", iconColor: "var(--neg)" },
+    { label: "โตเร็วที่สุด (YoY)", value: fastestGrow[0], delta: fastestGrow[4], sub: fmt1(fastestGrow[2]) + " ล้านลิตร เดือนนี้", icon: "&#9650;", iconBg: "var(--brand-blue-soft)", iconColor: "var(--brand-blue)" },
+    { label: "สัดส่วนส่งออก/การใช้ในประเทศ", value: exportLatest[3].toFixed(3) + "%", delta: null, sub: "เดือนที่จับคู่ได้ล่าสุด " + thMonth(exportLatest[0]), icon: "&#9733;", iconBg: "var(--brand-magenta-soft)", iconColor: "var(--brand-magenta)" },
+  ];
+  kpiRow.innerHTML = kpiDefs.map(k => `
+    <div class="kpi">
+      <div class="top-row">
+        <div class="label">${k.label}</div>
+        <div class="icon" style="background:${k.iconBg}; color:${k.iconColor};">${k.icon}</div>
+      </div>
+      <div class="value">${k.value}</div>
+      ${k.delta !== null ? `<span class="delta-pill ${k.delta < 0 ? "neg" : "pos"}">${k.delta < 0 ? "&#9660;" : "&#9650;"} ${fmtPct(k.delta)} YoY</span>` : ""}
+      <div class="sub">${k.sub}</div>
+    </div>
+  `).join("");
+
+  // ---------- Legend ----------
+  const legend = document.getElementById("legend");
+  const hidden = new Set();
+  function renderLegend() {
+    legend.innerHTML = order.map(p => `
+      <div class="legend-item ${hidden.has(p) ? "dim" : ""}" data-p="${p}">
+        <span class="sw" style="background:${palette[p]}"></span>${p}
+      </div>
+    `).join("");
+    legend.querySelectorAll(".legend-item").forEach(el => {
+      el.addEventListener("click", () => {
+        const p = el.dataset.p;
+        hidden.has(p) ? hidden.delete(p) : hidden.add(p);
+        renderLegend();
+        drawLineChart();
+      });
+    });
+  }
+
+  // ---------- Line chart ----------
+  const svgNS = "http://www.w3.org/2000/svg";
+  const svg = document.getElementById("line-chart");
+  const tooltip = document.getElementById("line-tooltip");
+  const W = 860, H = 320;
+  const margin = { top: 14, right: 54, bottom: 26, left: 44 };
+  const plotW = W - margin.left - margin.right;
+  const plotH = H - margin.top - margin.bottom;
+
+  const dates = DATA.dates;
+  const allVals = [];
+  order.forEach(p => DATA.series[p].forEach(v => allVals.push(v)));
+  const yMax = Math.ceil(Math.max(...allVals) / 200) * 200;
+
+  const xScale = (i) => margin.left + (i / (dates.length - 1)) * plotW;
+  const yScale = (v) => margin.top + plotH - (v / yMax) * plotH;
+
+  function el(tag, attrs) {
+    const e = document.createElementNS(svgNS, tag);
+    Object.entries(attrs).forEach(([k, v]) => e.setAttribute(k, v));
+    return e;
+  }
+
+  function drawLineChart() {
+    svg.innerHTML = "";
+    const ySteps = 4;
+    for (let s = 0; s <= ySteps; s++) {
+      const v = (yMax / ySteps) * s;
+      const y = yScale(v);
+      svg.appendChild(el("line", { x1: margin.left, x2: W - margin.right, y1: y, y2: y, class: "gridline" }));
+      const t = el("text", { x: margin.left - 8, y: y + 3, class: "axis-label", "text-anchor": "end" });
+      t.textContent = v.toFixed(0);
+      svg.appendChild(t);
+    }
+    svg.appendChild(el("line", { x1: margin.left, x2: margin.left, y1: margin.top, y2: H - margin.bottom, class: "baseline" }));
+
+    dates.forEach((d, i) => {
+      if (i % 3 !== 0) return;
+      const x = xScale(i);
+      const t = el("text", { x: x, y: H - margin.bottom + 16, class: "axis-label", "text-anchor": "middle" });
+      const dd = new Date(d + "T00:00:00");
+      t.textContent = (dd.getMonth() + 1) + "/" + String(dd.getFullYear()).slice(2);
+      svg.appendChild(t);
+    });
+
+    order.forEach(p => {
+      if (hidden.has(p)) return;
+      const vals = DATA.series[p];
+      const pts = vals.map((v, i) => `${xScale(i)},${yScale(v)}`).join(" ");
+      svg.appendChild(el("polyline", {
+        points: pts, fill: "none", stroke: palette[p], "stroke-width": 2.25,
+        "stroke-linejoin": "round", "stroke-linecap": "round",
+      }));
+      if (directLabel.has(p)) {
+        const lastI = vals.length - 1;
+        const t = el("text", { x: xScale(lastI) + 6, y: yScale(vals[lastI]) + 3, "font-size": 11, "font-weight": 800, fill: palette[p] });
+        t.textContent = fmt1(vals[lastI]);
+        svg.appendChild(t);
+      }
+    });
+
+    const hoverLine = el("line", { x1: 0, x2: 0, y1: margin.top, y2: H - margin.bottom, class: "baseline", "stroke-dasharray": "3,3", opacity: 0 });
+    svg.appendChild(hoverLine);
+    const hoverDots = order.map(p => {
+      const c = el("circle", { r: 3.5, fill: palette[p], stroke: cssVar("--surface-1"), "stroke-width": 1.5, opacity: 0 });
+      svg.appendChild(c);
+      return c;
+    });
+
+    const hitRect = el("rect", { x: margin.left, y: margin.top, width: plotW, height: plotH, fill: "transparent" });
+    svg.appendChild(hitRect);
+
+    const wrap = document.getElementById("line-chart-wrap");
+    hitRect.addEventListener("mousemove", (evt) => {
+      const rect = svg.getBoundingClientRect();
+      const scaleX = rect.width / W;
+      const mx = (evt.clientX - rect.left) / scaleX;
+      let i = Math.round(((mx - margin.left) / plotW) * (dates.length - 1));
+      i = Math.max(0, Math.min(dates.length - 1, i));
+      const x = xScale(i);
+      hoverLine.setAttribute("x1", x); hoverLine.setAttribute("x2", x); hoverLine.setAttribute("opacity", 1);
+
+      let rows = "";
+      order.forEach((p, k) => {
+        const dot = hoverDots[k];
+        if (hidden.has(p)) { dot.setAttribute("opacity", 0); return; }
+        const v = DATA.series[p][i];
+        dot.setAttribute("cx", x); dot.setAttribute("cy", yScale(v)); dot.setAttribute("opacity", 1);
+        rows += `<div class="t-row"><span class="k"><span class="dot" style="background:${palette[p]}"></span>${p}</span><span class="v">${fmt1(v)}</span></div>`;
+      });
+      tooltip.innerHTML = `<span class="t-date">${thMonth(dates[i])}</span>${rows}`;
+      tooltip.style.opacity = 1;
+      const wrapRect = wrap.getBoundingClientRect();
+      let left = (evt.clientX - wrapRect.left) + 14;
+      if (left + 170 > wrapRect.width) left = (evt.clientX - wrapRect.left) - 180;
+      tooltip.style.left = left + "px";
+      tooltip.style.top = Math.max(0, (evt.clientY - wrapRect.top) - 60) + "px";
+    });
+    hitRect.addEventListener("mouseleave", () => {
+      tooltip.style.opacity = 0; hoverLine.setAttribute("opacity", 0);
+      hoverDots.forEach(d => d.setAttribute("opacity", 0));
+    });
+  }
+
+  renderLegend();
+  drawLineChart();
+
+  // ---------- Nav pills: scroll-to-section, active state follows the click ----------
+  document.querySelectorAll("#nav-pills .nav-pill").forEach(pill => {
+    pill.addEventListener("click", () => {
+      document.querySelectorAll("#nav-pills .nav-pill").forEach(p => p.classList.remove("active"));
+      pill.classList.add("active");
+    });
+  });
+
+  // ---------- Donut: share of products shrinking YoY ----------
+  const donutSvg = document.getElementById("donut-chart");
+  const shrinkCount = yoy.filter(r => r[4] < 0).length;
+  const growCount = yoy.length - shrinkCount;
+  const shrinkPct = shrinkCount / yoy.length;
+  (function drawDonut() {
+    const cx = 90, cy = 90, r = 66, sw = 20;
+    const circumference = 2 * Math.PI * r;
+    const shrinkLen = circumference * shrinkPct;
+    const negColor = cssVar("--neg") || "#e34948";
+    const blueColor = cssVar("--brand-blue") || "#00518a";
+    donutSvg.innerHTML = `
+      <circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${blueColor}" stroke-width="${sw}" />
+      <circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${negColor}" stroke-width="${sw}"
+        stroke-dasharray="${shrinkLen} ${circumference - shrinkLen}" stroke-dashoffset="${circumference * 0.25}" stroke-linecap="round" />
+    `;
+    document.getElementById("donut-center").innerHTML = `
+      <div class="pct">${Math.round(shrinkPct * 100)}%</div>
+      <div class="cap">${shrinkCount} จาก ${yoy.length} ชนิด</div>
+    `;
+  })();
+
+  // ---------- Ranked list ----------
+  const rankList = document.getElementById("rank-list");
+  rankList.innerHTML = sorted.map(r => {
+    const [product, , qty, , g] = r;
+    const isNeg = g < 0;
+    return `
+      <div class="rank-row">
+        <span class="rank-dot" style="background:${palette[product]}"></span>
+        <div style="flex:1; min-width:0;">
+          <div class="rank-name">${product}</div>
+          <div class="rank-sub">${fmt1(qty)} ล้านลิตร เดือนนี้</div>
+        </div>
+        <span class="tag ${isNeg ? "neg" : "pos"}">${fmtPct(g)}</span>
+      </div>
+    `;
+  }).join("");
+
+  // ---------- Growth bar chart (diverging) ----------
+  const growthWrap = document.getElementById("growth-bars");
+  const maxAbs = Math.max(...sorted.map(r => Math.abs(r[4])), 5);
+  growthWrap.innerHTML = sorted.map(r => {
+    const [product, , , , g] = r;
+    const half = Math.min(50, (Math.abs(g) / maxAbs) * 50);
+    const isNeg = g < 0;
+    const left = isNeg ? (50 - half) : 50;
+    const color = isNeg ? "var(--neg)" : "var(--brand-blue)";
+    return `
+      <div class="bar-row">
+        <div class="bar-label">${product}</div>
+        <div class="bar-track">
+          <div class="bar-mid"></div>
+          <div class="bar-fill" style="left:${left}%; width:${half}%; background:${color};"></div>
+        </div>
+        <div class="bar-val" style="color:${color}">${fmtPct(g)}</div>
+      </div>
+    `;
+  }).join("");
+
+  // ---------- Insight banner ----------
+  const shrinkers = sorted.filter(r => r[4] < 0);
+  const bannerText = document.getElementById("banner-text");
+  if (shrinkers.length) {
+    const names = shrinkers.map(r => `<b>${r[0]}</b> (${fmtPct(r[4])})`).join(", ");
+    bannerText.innerHTML = `${names} กำลังหดตัวเทียบปีก่อนในเดือน ${thMonth(totalLatest[0])} รวม ${shrinkers.length} จาก ${sorted.length} ชนิด ส่งผลต่อแผน product mix ของโรงกลั่นโดยตรง`;
+  } else {
+    bannerText.innerHTML = `ทุกชนิดน้ำมันโตหรือทรงตัวเทียบปีก่อนในเดือน ${thMonth(totalLatest[0])}`;
+  }
+
+  // ---------- YoY table ----------
+  const tbody = document.querySelector("#yoy-table tbody");
+  tbody.innerHTML = sorted.map(r => {
+    const [product, , qty, qtyLy, g] = r;
+    return `<tr>
+      <td style="padding:7px 8px; border-bottom:1px solid var(--hairline);"><span style="width:8px;height:8px;border-radius:2px;display:inline-block;margin-right:6px;background:${palette[product]}"></span>${product}</td>
+      <td style="padding:7px 8px; border-bottom:1px solid var(--hairline); text-align:right;">${fmt1(qty)}</td>
+      <td style="padding:7px 8px; border-bottom:1px solid var(--hairline); text-align:right;">${fmt1(qtyLy)}</td>
+      <td style="padding:7px 8px; border-bottom:1px solid var(--hairline); text-align:right; font-weight:800; color:${g < 0 ? "var(--neg)" : "var(--brand-blue)"};">${fmtPct(g)}</td>
+    </tr>`;
+  }).join("");
+})();
+</script>
