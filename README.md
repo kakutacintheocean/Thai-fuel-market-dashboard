@@ -2,7 +2,7 @@
 
 โจทย์ธุรกิจ: ความต้องการน้ำมันสำเร็จรูปแต่ละชนิดในไทยเปลี่ยนไปอย่างไร และชนิดไหนที่กำลังหดตัวจนกระทบแผนการผลิตของโรงกลั่น
 
-**Live dashboard:** `https://<username>.github.io/<repo-name>/powerbi/dashboard_preview.html` (แก้ `<username>/<repo-name>` เป็นของจริงหลังเปิด GitHub Pages แล้ว ดูวิธีเปิดด้านล่าง)
+**Live dashboard:** https://kakutacintheocean.github.io/Thai-fuel-market-dashboard/
 
 ## โครงสร้างโปรเจค
 
@@ -84,10 +84,13 @@ python scripts/clean_fuel_data.py
 
 ## เปิด dashboard ให้คนอื่นดูผ่าน GitHub Pages
 
-1. Push repo นี้ขึ้น GitHub ก่อน (branch `main`)
+เปิดใช้งานแล้วที่ Settings > Pages (branch `main`, folder `/ (root)`) เข้าดูได้ที่
+https://kakutacintheocean.github.io/Thai-fuel-market-dashboard/ (ไฟล์ `index.html`
+ที่ root จะ redirect ไปหน้า dashboard ที่ `powerbi/dashboard_preview.html` ให้อัตโนมัติ)
+
+ถ้า fork ไปทำโปรเจคของตัวเอง ทำตามนี้ซ้ำ:
+1. Push repo ขึ้น GitHub (branch `main`)
 2. ไปที่ repo บน GitHub > **Settings** > เมนูซ้าย **Pages**
 3. หัวข้อ "Build and deployment" > Source เลือก **Deploy from a branch**
 4. Branch เลือก **main** / **/ (root)** แล้วกด **Save**
-5. รอ 1 ถึง 2 นาที ตัว dashboard จะเข้าถึงได้ที่
-   `https://<username>.github.io/<repo-name>/powerbi/dashboard_preview.html`
-   (แทน `<username>` และ `<repo-name>` ด้วยของจริง แล้วอัปเดตลิงก์บนสุดของไฟล์นี้)
+5. รอ 1 ถึง 2 นาที แล้วแก้ลิงก์ `index.html` และบรรทัด "Live dashboard" ด้านบนให้ตรงกับ username/repo ของตัวเอง
