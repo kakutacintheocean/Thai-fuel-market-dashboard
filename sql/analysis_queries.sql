@@ -116,9 +116,9 @@ ORDER BY streak_end DESC, consecutive_months_shrinking DESC;
 -- matches what the raw file's UNIT column literally states ("พันลิตรต่อเดือน"),
 -- so the numbers below are computed correctly from what the source claims,
 -- but the source's real-world meaning is still unverified. Query 4 is kept
--- here because the assignment calls for a JOIN and this is the only join-able
--- second source; its output is intentionally NOT surfaced on the dashboard
--- until the metadata question is resolved.
+-- here because the join itself is structurally correct and ready to use the
+-- moment DOEB metadata confirms what this dataset actually measures; its
+-- output is intentionally NOT surfaced on the dashboard until then.
 -- ----------------------------------------------------------------------------
 -- 4) JOIN: total monthly consumption vs total monthly export, with export
 --    share of consumption -> answers "ส่งออกกินส่วนแบ่งจาก supply เท่าไหร่"
