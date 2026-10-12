@@ -2,6 +2,8 @@
 
 โจทย์ธุรกิจ: ความต้องการน้ำมันสำเร็จรูปแต่ละชนิดในไทยเปลี่ยนไปอย่างไร และชนิดไหนที่กำลังหดตัวจนกระทบแผนการผลิตของโรงกลั่น
 
+**Live dashboard:** `https://<username>.github.io/<repo-name>/powerbi/dashboard_preview.html` (แก้ `<username>/<repo-name>` เป็นของจริงหลังเปิด GitHub Pages แล้ว ดูวิธีเปิดด้านล่าง)
+
 ## โครงสร้างโปรเจค
 
 ```
@@ -79,3 +81,13 @@ python scripts/clean_fuel_data.py
 2. หน่วยพันลิตร vs ล้านลิตร ปนกัน (เผลอรวมตรงๆ ยอดจะเพี้ยน 1000 เท่า)
 3. เดือนเป็นชื่อ ("January") ในไฟล์หนึ่ง เป็นเลข (1 ถึง 12) ในอีกไฟล์ ต้อง map เองถ้าทำมือ
 4. ชนิดน้ำมันเขียน ALL CAPS ต้องมา normalize ก่อน join/group ไม่งั้น pivot จะแยกเป็นหมวดซ้ำ
+
+## เปิด dashboard ให้คนอื่นดูผ่าน GitHub Pages
+
+1. Push repo นี้ขึ้น GitHub ก่อน (branch `main`)
+2. ไปที่ repo บน GitHub > **Settings** > เมนูซ้าย **Pages**
+3. หัวข้อ "Build and deployment" > Source เลือก **Deploy from a branch**
+4. Branch เลือก **main** / **/ (root)** แล้วกด **Save**
+5. รอ 1 ถึง 2 นาที ตัว dashboard จะเข้าถึงได้ที่
+   `https://<username>.github.io/<repo-name>/powerbi/dashboard_preview.html`
+   (แทน `<username>` และ `<repo-name>` ด้วยของจริง แล้วอัปเดตลิงก์บนสุดของไฟล์นี้)
