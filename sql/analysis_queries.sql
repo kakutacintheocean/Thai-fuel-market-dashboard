@@ -110,6 +110,16 @@ ORDER BY streak_end DESC, consecutive_months_shrinking DESC;
 
 
 -- ----------------------------------------------------------------------------
+-- KNOWN DATA QUALITY ISSUE (see README "Data quality finding" for the full
+-- write-up): export_pct_of_consumption below comes out to ~0.01-0.02%, far
+-- lower than real-world Thai refined-product exports. The unit conversion
+-- matches what the raw file's UNIT column literally states ("พันลิตรต่อเดือน"),
+-- so the numbers below are computed correctly from what the source claims,
+-- but the source's real-world meaning is still unverified. Query 4 is kept
+-- here because the assignment calls for a JOIN and this is the only join-able
+-- second source; its output is intentionally NOT surfaced on the dashboard
+-- until the metadata question is resolved.
+-- ----------------------------------------------------------------------------
 -- 4) JOIN: total monthly consumption vs total monthly export, with export
 --    share of consumption -> answers "ส่งออกกินส่วนแบ่งจาก supply เท่าไหร่"
 -- ----------------------------------------------------------------------------
@@ -167,3 +177,21 @@ SELECT
 FROM per_product p
 JOIN latest l ON p.record_date = l.max_date
 ORDER BY yoy_growth_pct ASC;
+
+
+-- ----------------------------------------------------------------------------
+-- 6) Data quality guard: flag any product name the pipeline has not seen
+--    before. clean_fuel_data.py's PRODUCT_NAME_MAP and the dashboard's
+--    hardcoded series-color list only know the 6 products below (plus the
+--    'All Products' export total). A real new product from EPPO (e.g. a new
+--    biofuel blend) would NOT crash the script or get dropped, but it WOULD
+--    silently fail to appear on the dashboard chart/legend, because the
+--    dashboard's JS iterates a fixed product list, not a dynamic one.
+--    Run this after every pipeline refresh; zero rows = safe to trust the
+--    dashboard as-is, any row = go update PRODUCT_NAME_MAP and the
+--    dashboard's `order`/`palette` arrays before trusting the chart.
+-- ----------------------------------------------------------------------------
+SELECT DISTINCT product, metric_type, COUNT(*) AS row_count
+FROM fact_fuel_monthly
+WHERE product NOT IN ('Diesel', 'Gasoline', 'Jet Fuel', 'LPG', 'Fuel Oil', 'Kerosene', 'All Products')
+GROUP BY product, metric_type;
